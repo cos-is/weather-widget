@@ -1,6 +1,6 @@
 <template>
   <div class="weather-widget">
-    <div v-if="notice" class="weather-widget_notice">{{ notice }}</div>
+    <div v-if="notice || cities.length === 0" class="weather-widget_notice">{{ notice || noticeList.noData }}</div>
     <city-item
       v-for="city in cities"
       :key="city.sys.id"
@@ -14,6 +14,7 @@
 import { LocalStore } from '@/utils'
 import { getWeatherData } from '@/api/weather.api'
 import CityItem from './CityItem'
+import noticeList from './noticeList'
 
 const CitiesStore = new LocalStore('cities')
 
@@ -24,7 +25,13 @@ export default {
   data () {
     return {
       cities: [],
-      notice: null
+      notice: null,
+      settingsNotice: null,
+    }
+  },
+  computed: {
+    noticeList () {
+      return noticeList
     }
   },
   created () {
@@ -54,12 +61,20 @@ export default {
         const city = await getWeatherData(params)
         if (!this.cities.some(cityItem => cityItem.id === city.id)) {
           this.cities = [...this.cities, city]
+          this.settingsNotice = null
+          this.notice = null
           if (save) {
             this.saveCities()
           }
+        } else {
+          this.settingsNotice = noticeList.cityExists
         }
-      } catch (e) {
-        console.log(e)
+      } catch ({ message, response }) {
+        if (message === 'Network Error') {
+          this.notice = noticeList.networkError
+        } else {
+          this.settingsNotice = noticeList[response.status] || noticeList.default
+      }
       }
     },
     async requestSavedCities () {
