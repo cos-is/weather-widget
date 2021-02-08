@@ -40,6 +40,7 @@ export default {
     } else {
       this.requestSavedCities()
     }
+    window.addEventListener('online', this.requestSavedCities)
   },
   methods: {
     requestUserLocationCity () {
