@@ -6,6 +6,22 @@
       <div class="city-item_temp_value">{{ realTemp }}&#176;C</div>
     </div>
     <div class="city-item_weather-info">Feels like {{ feelsLikeTemp }}&#176;C. {{ weatherDesc }}</div>
+    <div class="city-item_props">
+      <div class="city-item_props_item">
+        <svgicon class="city-item_cardinal" :style="{ transform: `rotate(${-windDeg}deg)` }" original name="cardinal-direction" />
+        {{ wind }}
+      </div>
+      <div class="city-item_props_item">
+        <svgicon original name="barometer" />
+        {{ pressure }}hPa
+      </div>
+      <div class="city-item_props_item">
+        Humidity: {{ humidity }}%
+      </div>
+      <div class="city-item_props_item">
+        Visibility: {{ visibility }}km
+      </div>
+    </div>
   </div>
 </template>
 
@@ -45,14 +61,14 @@ export default {
       const cardinalDirection = cardinalFromDegree(this.city.wind.deg)
       return `${this.city.wind.speed.toFixed(1)}m/s ${cardinalDirection}`
     },
+    windDeg () {
+      return this.city.wind.deg
+    },
     humidity () {
       return this.city.main.humidity
     },
-    dewPoint () {
-
-    },
     visibility () {
-      const visibility = this.city.sys.visibility / visibilityDivider
+      const visibility = this.city.visibility / visibilityDivider
       return visibility.toFixed(1)
     },
     pressure () {
@@ -62,6 +78,44 @@ export default {
 }
 </script>
 
-<style>
-
+<style lang="scss">
+  .city-item {
+    &:not(:last-child) {
+      margin-bottom: 50px;
+    }
+  }
+  .city-item_name {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .city-item_cardinal {
+    transform-origin: 50% 50%;
+  }
+  .city-item_props {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 20px;
+    row-gap: 10px;
+    font-size: 14px;
+  }
+  .city-item_props_item {
+    display: flex;
+    align-items: center;
+    & .svg-icon {
+      margin-right: 10px;
+    }
+  }
+  .city-item_temp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .city-item_temp_value {
+    font-size: 26px;
+    font-weight: 500;
+  }
+  .city-item_weather-info {
+    margin-bottom: 20px;
+  }
 </style>
