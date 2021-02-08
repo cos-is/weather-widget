@@ -1,17 +1,26 @@
 <template>
   <div class="weather-widget">
     <div v-if="notice" class="weather-widget_notice">{{ notice }}</div>
-    <div v-for="city in cities" :key="city.sys.id" class="weather-widget_city">{{ city.name }}</div>
+    <city-item
+      v-for="city in cities"
+      :key="city.sys.id"
+      :city="city"
+      class="weather-widget_city"
+    />
   </div>
 </template>
 
 <script>
 import { LocalStore } from '@/utils'
 import { getWeatherData } from '@/api/weather.api'
+import CityItem from './CityItem'
 
 const CitiesStore = new LocalStore('cities')
 
 export default {
+  components: {
+    CityItem
+  },
   data () {
     return {
       cities: [],
@@ -26,11 +35,6 @@ export default {
     }
   },
   methods: {
-    addCity (city) {
-      const cities = this.cities || []
-      this.cities = [...cities, city]
-      this.saveCities()
-    },
     requestUserLocationCity () {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(({ coords }) => {
@@ -38,24 +42,29 @@ export default {
             latitude: lat,
             longitude: lon
           } = coords
-          this.getCityData({ lat, lon })
+          this.addCity({ lat, lon })
         })
       }
     },
     saveCities () {
       CitiesStore.item = this.cities.map(city => city.name)
     },
-    async getCityData (params = {}) {
+    async addCity (params = {}, save = true) {
       try {
         const city = await getWeatherData(params)
-        this.addCity(city)
+        if (!this.cities.some(cityItem => cityItem.id === city.id)) {
+          this.cities = [...this.cities, city]
+          if (save) {
+            this.saveCities()
+          }
+        }
       } catch (e) {
         console.log(e)
       }
     },
     async requestSavedCities () {
       for (const city of CitiesStore.item) {
-        await this.getCityData({ q: city })
+        await this.addCity({ q: city }, false)
       }
     }
   }
